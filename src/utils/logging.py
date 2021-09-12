@@ -63,6 +63,9 @@ def get_logger():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     logger.setLevel('DEBUG')
+    
+    # If you want to pervent logging being sent
+    # logger.propagate = False
 
     return logger
 
