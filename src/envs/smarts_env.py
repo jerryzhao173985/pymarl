@@ -280,6 +280,17 @@ class TimeLimit(GymTimeLimit):
         #     self.env.spec.max_episode_steps = max_episode_steps
         self._max_episode_steps = max_episode_steps
         self._elapsed_steps = None
+        
+        
+        self.n_agents = 2
+        self.agent_ids = ["Agent %i" % i for i in range(self.n_agents)]
+        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(10,))] * self.n_agents
+        self.action_space = [gym.spaces.Discrete(4)] * self.n_agents
+        self.longest_action_space = max(self.action_space, key=lambda x: x.n)
+        self.longest_observation_space = max(
+            self.observation_space, key=lambda x: x.shape
+        )
+        
 
     def step(self, action):
         assert (
@@ -289,10 +300,40 @@ class TimeLimit(GymTimeLimit):
         self._elapsed_steps += 1
         print("STEP: ", self._elapsed_steps)
         
+        # if self._elapsed_steps >= self._max_episode_steps:
+        #     info["TimeLimit.truncated"] = not all(done)
+        #     done = len(observation) * [True]
+        
+        
+        # observation = [
+        #     np.pad(
+        #         o,
+        #         (0, self.longest_observation_space.shape[0] - len(o)),
+        #         "constant",
+        #         constant_values=0,
+        #     )
+        #     for o in observation
+        # ]
+        obs_n = []
+        # covert dict observations to a list of np.arrays
+        for agent_id in self.agent_ids:
+            obs_n.append(observation.get(agent_id, np.zeros(10)))
+            # this is same as: obs_n.append(self.current_observations.get(agent_id))
+            # This helps when one agent i.e. 'Agent 0 ' is already finished  
+        
+        r_n = []
+        d_n = []
+        for agent_id in self.agent_ids:
+            r_n.append(reward.get(agent_id, 0.))
+            d_n.append(done.get(agent_id, True))
+            
         if self._elapsed_steps >= self._max_episode_steps:
-            info["TimeLimit.truncated"] = not all(done)
-            done = len(observation) * [True]
-        return observation, reward, done, info
+            d_n = self.n_agents * [True]
+        
+        
+        print("all---true dones:",d_n , r_n, obs_n)
+        
+        return obs_n, r_n, d_n, info
 
 
 class FlattenObservation(ObservationWrapper):
@@ -325,22 +366,25 @@ class FlattenObservation(ObservationWrapper):
         
         # print(",,,,,,,,,,,,,,,", self.observation_space)
         
-        obs_n = []
-        # covert dict observations to a list of np.arrays
-        for agent_id in self.agent_ids:
-            obs_n.append(observation.get(agent_id, np.zeros(10)))
-            # this is same as: obs_n.append(self.current_observations.get(agent_id))
+        # obs_n = []
+        # # covert dict observations to a list of np.arrays
+        # for agent_id in self.agent_ids:
+        #     obs_n.append(observation.get(agent_id, np.zeros(10)))
+        
         
         # print("|||||||||||||||", obs_n)
-        print(zip(self.observation_space, obs_n))
+        # print(zip(self.observation_space, obs_n))
         
         
-        return tuple(
-            [
-                spaces.flatten(obs_space, obs)
-                for obs_space, obs in zip(self.observation_space, obs_n)
-            ]
-        )
+        # return tuple(
+        #     [
+        #         spaces.flatten(obs_space, obs)
+        #         for obs_space, obs in zip(self.observation_space, observation)
+        #     ]
+        # )
+        
+        # print("------------------!!!!!", observation)
+        return observation
 
 
 
@@ -384,7 +428,7 @@ class SMARTSEnv(MultiAgentEnv):
         self.headless = kwargs['headless']
         # self.headless = False
         
-        num_episodes = 100
+        num_episodes = 50
         self.seed = kwargs['seed']
         
         
@@ -394,7 +438,7 @@ class SMARTSEnv(MultiAgentEnv):
         
         self.agent_specs = {
             agent_id: AgentSpec(
-                interface=AgentInterface.from_type(AgentType.Laner, max_episode_steps=5000),
+                interface=AgentInterface.from_type(AgentType.Laner, max_episode_steps=num_episodes),
                 observation_adapter=observation_adapter,
                 reward_adapter=reward_adapter,
                 action_adapter=action_adapter,
@@ -483,7 +527,7 @@ class SMARTSEnv(MultiAgentEnv):
         #     zoo_addrs=self.zoo_addrs,
         # )
         
-        self.max_episode_steps = 5000
+        self.max_episode_steps = 50
         self._env = TimeLimit(self._env, max_episode_steps=self.max_episode_steps)
         
         
@@ -525,25 +569,33 @@ class SMARTSEnv(MultiAgentEnv):
         print(agent_actions)
           
         self._obs, reward, done, info = self._env.step(agent_actions)
-        self._obs = [
-            np.pad(
-                o,
-                (0, self.longest_observation_space.shape[0] - len(o)),
-                "constant",
-                constant_values=0,
-            )
-            for o in self._obs
-        ]
+        # self._obs = [
+        #     np.pad(
+        #         o,
+        #         (0, self.longest_observation_space.shape[0] - len(o)),
+        #         "constant",
+        #         constant_values=0,
+        #     )
+        #     for o in self._obs
+        # ]
+        
+        # _obs = []
+        # for agent_id in self.agent_ids:
+        #     _obs.append(self._obs.get(agent_id, np.zeros(10)))
+        
+        # self._obs = _obs
+        # print("xoxo: ", self._obs, reward, done, info)
     
     
-        r_n = []
-        d_n = []
-        for agent_id in self.agent_ids:
-            r_n.append(reward.get(agent_id, 0.))
-            d_n.append(done.get(agent_id, True))
-        print(r_n, d_n)
+        # r_n = []
+        # d_n = []
+        # for agent_id in self.agent_ids:
+        #     r_n.append(reward.get(agent_id, 0.))
+        #     d_n.append(done.get(agent_id, True))
+        # print(r_n, d_n)
         # print(done)    # {'Agent 1': False, 'Agent 0': False, '__all__': False}
-        return float(sum(r_n)), all(d_n), {}
+        print(float(sum(reward)), all(done), {})
+        return float(sum(reward)), all(done), {}
 
     def get_obs(self):
         """ Returns all agent observations in a list """
@@ -601,15 +653,21 @@ class SMARTSEnv(MultiAgentEnv):
     def reset(self):
         """ Returns initial observations and states"""
         self._obs = self._env.reset()
-        self._obs = [
-            np.pad(
-                o,
-                (0, self.longest_observation_space.shape[0] - len(o)),
-                "constant",
-                constant_values=0,
-            )
-            for o in self._obs
-        ]
+        # self._obs = [
+        #     np.pad(
+        #         o,
+        #         (0, self.longest_observation_space.shape[0] - len(o)),
+        #         "constant",
+        #         constant_values=0,
+        #     )
+        #     for o in self._obs
+        # ]
+        _obs = []
+        for agent_id in self.agent_ids:
+            _obs.append(self._obs.get(agent_id, np.zeros(10)))
+        
+        self._obs = _obs
+        
         return self.get_obs(), self.get_state()
 
     def render(self):
