@@ -125,8 +125,8 @@ def _lane_ttc_observation_adapter(env_observation):
         "angle_error": np.array([closest_wp.relative_heading(ego.heading)]),
         "speed": np.array([ego.speed]),
         "steering": np.array([ego.steering]),
-        "ego_ttc": np.array(ego_ttc),
-        "ego_lane_dist": np.array(ego_lane_dist),
+        # "ego_ttc": np.array(ego_ttc),
+        # "ego_lane_dist": np.array(ego_lane_dist),   ##FIXME: Delete last two observations (6 values), only perserve 4 sensor values
     }
 
 
@@ -233,6 +233,16 @@ def _ego_ttc_calc(ego_lane_index, ttc_by_path, lane_dist_by_path):
 def observation_adapter(env_observation):
     obs =  lane_ttc_observation_adapter.transform(env_observation)
     obs_flatten = np.concatenate(list(obs.values()), axis=0)
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print(len(obs_flatten), obs_flatten)
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
+    # print("-----------------------------------------")
     return obs_flatten
 
 def reward_adapter(env_obs, env_reward):
@@ -317,7 +327,7 @@ class TimeLimit(GymTimeLimit):
         obs_n = []
         # covert dict observations to a list of np.arrays
         for agent_id in self.agent_ids:
-            obs_n.append(observation.get(agent_id, np.zeros(10)))
+            obs_n.append(observation.get(agent_id, np.zeros(4)))
             # this is same as: obs_n.append(self.current_observations.get(agent_id))
             # This helps when one agent i.e. 'Agent 0 ' is already finished  
         
@@ -664,7 +674,7 @@ class SMARTSEnv(MultiAgentEnv):
         # ]
         _obs = []
         for agent_id in self.agent_ids:
-            _obs.append(self._obs.get(agent_id, np.zeros(10)))
+            _obs.append(self._obs.get(agent_id, np.zeros(4)))
         
         self._obs = _obs
         
