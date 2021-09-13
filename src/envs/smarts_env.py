@@ -438,17 +438,17 @@ class SMARTSEnv(MultiAgentEnv):
         self.headless = kwargs['headless']
         # self.headless = False
         
-        num_episodes = 50
+        # num_episodes = 50
         self.seed = kwargs['seed']
         
         
-        self._log = logging.getLogger(self.__class__.__name__)
+        # self._log = logging.getLogger(self.__class__.__name__)
         smarts.core.seed(self.seed)
         
         
         self.agent_specs = {
             agent_id: AgentSpec(
-                interface=AgentInterface.from_type(AgentType.Laner, max_episode_steps=num_episodes),
+                interface=AgentInterface.from_type(AgentType.Laner, max_episode_steps=self.episode_limit),
                 observation_adapter=observation_adapter,
                 reward_adapter=reward_adapter,
                 action_adapter=action_adapter,
@@ -537,8 +537,8 @@ class SMARTSEnv(MultiAgentEnv):
         #     zoo_addrs=self.zoo_addrs,
         # )
         
-        self.max_episode_steps = 50
-        self._env = TimeLimit(self._env, max_episode_steps=self.max_episode_steps)
+        # self.max_episode_steps = 50
+        self._env = TimeLimit(self._env, max_episode_steps=self.episode_limit)
         
         
         self._env = FlattenObservation(self._env)

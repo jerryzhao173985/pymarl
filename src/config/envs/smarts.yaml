@@ -3,8 +3,8 @@ env: smarts
 env_args:
   agent_num: 2
   continuing_episode: False
-  scenarios: "./SMARTS/scenarios/straight"
-  episode_limit: 50  # 100
+  scenarios: "./SMARTS/scenarios/intersections/2lane"
+  episode_limit: 100  # 100
   seed: 10
   headless: True
 
