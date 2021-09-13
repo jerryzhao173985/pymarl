@@ -101,8 +101,8 @@ _LANE_TTC_OBSERVATION_SPACE = gym.spaces.Dict(
         "angle_error": gym.spaces.Box(low=-np.pi, high=np.pi, shape=(1,)),
         "speed": gym.spaces.Box(low=-1e10, high=1e10, shape=(1,)),
         "steering": gym.spaces.Box(low=-1e10, high=1e10, shape=(1,)),
-        "ego_lane_dist": gym.spaces.Box(low=-1e10, high=1e10, shape=(3,)),
-        "ego_ttc": gym.spaces.Box(low=-1e10, high=1e10, shape=(3,)),
+        # "ego_lane_dist": gym.spaces.Box(low=-1e10, high=1e10, shape=(3,)),
+        # "ego_ttc": gym.spaces.Box(low=-1e10, high=1e10, shape=(3,)),
     }
 )
 
@@ -294,7 +294,7 @@ class TimeLimit(GymTimeLimit):
         
         self.n_agents = 2
         self.agent_ids = ["Agent %i" % i for i in range(self.n_agents)]
-        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(10,))] * self.n_agents
+        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(4,))] * self.n_agents
         self.action_space = [gym.spaces.Discrete(4)] * self.n_agents
         self.longest_action_space = max(self.action_space, key=lambda x: x.n)
         self.longest_observation_space = max(
@@ -354,7 +354,7 @@ class FlattenObservation(ObservationWrapper):
         
         self.n_agents = 2
         self.agent_ids = ["Agent %i" % i for i in range(self.n_agents)]
-        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(10,))] * self.n_agents
+        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(4,))] * self.n_agents
         self.action_space = [gym.spaces.Discrete(4)] * self.n_agents
         
         ma_spaces = []
@@ -425,7 +425,7 @@ class SMARTSEnv(MultiAgentEnv):
         
         self.episode_limit = kwargs['episode_limit']
         self.n_agents = kwargs['agent_num']
-        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(10,))] * self.n_agents
+        self.observation_space = [gym.spaces.Box(low=-1e10, high=1e10, shape=(4,))] * self.n_agents
         self.action_space = [gym.spaces.Discrete(4)] * self.n_agents
         self.agent_ids = ["Agent %i" % i for i in range(self.n_agents)]
         self.n_actions = 4
